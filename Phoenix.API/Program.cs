@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,7 @@ builder.Services.AddFirestoreDb(x =>
 {
     x.ProjectId = "phoenix-430818";
     x.DatabaseId = "phoenix-db";
-    x.CredentialsPath = Directory.GetCurrentDirectory() + "\\auth.json";
+    x.CredentialsPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\auth.json";
 });
 
 var app = builder.Build();
