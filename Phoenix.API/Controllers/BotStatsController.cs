@@ -17,12 +17,22 @@ namespace Phoenix.API.Controllers
         }
 
         [HttpGet]
-        public async Task<bool> Get()
+        public async Task<ActionResult> Get()
         {
-            CollectionReference collection = _dbContext.Collection("users");
-            DocumentReference document = await collection.AddAsync(new { Name = new { First = "Ada", Last = "Lovelace" }, Born = 1815 });
+            try
+            {
+                CollectionReference collection = _dbContext.Collection("users");
+                DocumentReference document = await collection.AddAsync(new { Name = new { First = "Ada", Last = "Lovelace" }, Born = 1815 });
 
-            return true;
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+
+
+
         }
     }
 }
