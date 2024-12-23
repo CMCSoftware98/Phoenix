@@ -1,3 +1,5 @@
+using Google.Cloud.Firestore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +7,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddFirestoreDb(x =>
+{
+    x.ProjectId = "phoenix-430818";
+    x.DatabaseId = "phoenix-db";
+    x.CredentialsPath = Directory.GetCurrentDirectory() + "\\auth.json";
+});
 
 var app = builder.Build();
 
