@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Phoenix.Shared\Phoenix.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="auth.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

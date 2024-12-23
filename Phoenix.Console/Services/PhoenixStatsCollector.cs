@@ -5,7 +5,12 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
+using Phoenix.Shared.Enums;
+using Phoenix.Shared.Models;
+using RestSharp;
+using RestSharp.Authenticators;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -20,26 +25,93 @@ namespace Phoenix.Console.Services
         private readonly Timer _timer;
         private readonly ILogger<PhoenixStatsCollector> _logger;
         private readonly IWebDriver _webDriver;
-        private List<string> botlinks = new List<string>();
+        private readonly RestClient _client;
+        private List<MatchResult> _matchResults = new List<MatchResult>();
+        private List<MatchResult> _foundMatchResults = new List<MatchResult>();
 
         public PhoenixStatsCollector(ILogger<PhoenixStatsCollector> logger)
         {
             _logger = logger;
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
             ChromeOptions chromeOptions = new ChromeOptions();
-            chromeOptions.AddArguments("headless");
-
+            //chromeOptions.AddArguments("headless");
+            
             _webDriver = new ChromeDriver(chromeOptions);
+
+            var options = new RestClientOptions("https://phoenix-229361706325.europe-west4.run.app");
+
+            _client = new RestClient(options);
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             while(true)
             {
-                _logger.LogInformation("MyHostedService is starting.");
+                try
+                {
+                    await GetMatchLinks();
 
-                await _webDriver.Navigate().GoToUrlAsync("https://csgoempire.com/match-betting?bt-path=/cs2-ai/counter-strike-2/de-dust2--bo15--knife-2443129125658038305");
+                    await GetOfficialMatchResults();
 
+                    await Task.Delay(TimeSpan.FromSeconds(30));
+                }
+                catch (Exception ex) {
+                    _logger.LogError(ex.Message);
+                }
+            }
+        }
+
+        public async Task GetMatchLinks()
+        {
+
+            await _webDriver.Navigate().GoToUrlAsync("https://csgoempire.com/match-betting?bt-path=/cs2-ai/counter-strike-2/de-dust2--bo15--knife-2443129125658038305");
+
+            await Task.Delay(TimeSpan.FromSeconds(10));
+
+            string xPathShadow = "//*[@id=\"bt-inner-page\"]";
+
+            var shadowRoot = _webDriver.FindElement(By.XPath(xPathShadow)).GetShadowRoot();
+
+            // Use a regular expression to match the href pattern
+            string pattern = @"/cs2-ai/counter-strike-2/de-dust2--bo15--knife/sas-elite-crew-\d+"; // \d+ matches one or more digits
+
+            // Find all <a> elements
+            var links = _webDriver.FindElements(By.TagName("a"));
+
+
+            var linksInShadowRoot = shadowRoot.FindElements(By.CssSelector("a"));
+
+            foreach (var link in linksInShadowRoot)
+            {
+                string href = link.GetDomAttribute("href");
+                if (!string.IsNullOrEmpty(href) && Regex.IsMatch(href, pattern))
+                {
+
+                    FrozenSet<MatchResult> matchResults = _matchResults.ToFrozenSet();
+                    var found = matchResults.FirstOrDefault(x => x.Url == href);
+
+                    if (found == null)
+                    {
+                        _logger.LogInformation($"Adding Match Result For Finding: {href}");
+
+                        _matchResults.Add(new MatchResult
+                        {
+                            Url = href,
+                            CTSideScore = 0,
+                            TSideScore = 0,
+                            MatchCondition = MatchCondition.Queued
+                        });
+                    }
+                }
+            }
+        }
+
+        public async Task GetOfficialMatchResults()
+        {
+            var firstMatch = _matchResults.FirstOrDefault(x => x.MatchCondition == MatchCondition.Queued);
+
+            if(firstMatch != null)
+            {
+                await _webDriver.Navigate().GoToUrlAsync($"https://csgoempire.com/match-betting?bt-path=/cs2-ai/counter-strike-2/de-dust2--bo15--knife/sas-elite-crew-2483113974321786914");
 
                 await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -47,29 +119,34 @@ namespace Phoenix.Console.Services
 
                 var shadowRoot = _webDriver.FindElement(By.XPath(xPathShadow)).GetShadowRoot();
 
-                // Use a regular expression to match the href pattern
-                string pattern = @"/cs2-ai/counter-strike-2/de-dust2--bo15--knife/sas-elite-crew-\d+"; // \d+ matches one or more digits
+                var resultText = shadowRoot.FindElement(By.CssSelector("[data-editor-id='eventCardStatusLabel']"));
 
-                // Find all <a> elements
-                var links = _webDriver.FindElements(By.TagName("a"));
-
-
-                var linksInShadowRoot = shadowRoot.FindElements(By.CssSelector("a"));
-
-                foreach (var link in linksInShadowRoot)
+                if(resultText != null)
                 {
-                    string href = link.GetDomAttribute("href");
-                    if (!string.IsNullOrEmpty(href) && Regex.IsMatch(href, pattern))
+                    var scores = shadowRoot.FindElements(By.CssSelector("[data-editor-id='scoreBoardScore']"));
+
+                    if (resultText.Text.Contains("Ended"))
                     {
-                        if(!botlinks.Contains(href))
-                        {
-                            _logger.LogInformation($"Adding Link: {href}");
-                            botlinks.Add(href);
-                        }
+                        firstMatch.CTSideScore = int.Parse(scores.First().Text);
+                        firstMatch.TSideScore = int.Parse(scores.Last().Text);
+                        firstMatch.MatchCondition = MatchCondition.Finished;
+
+                        _foundMatchResults.Add(firstMatch);
                     }
                 }
+            }
+        }
 
-                await Task.Delay(TimeSpan.FromSeconds(30));
+        public async Task PostMatchResults()
+        {
+            foreach (var item in _foundMatchResults)
+            {
+                var result = await _client.PostJsonAsync<MatchResult>("botstats", item);
+
+                if (result == System.Net.HttpStatusCode.OK)
+                {
+                    _foundMatchResults.Remove(item);
+                }
             }
         }
 
@@ -115,14 +192,6 @@ namespace Phoenix.Console.Services
 
             // Timeout reached
             return string.Empty;
-        }
-
-        private void DoWork(object? state)
-        {
-            
-
-            _logger.LogInformation("MyHostedService is working.");
-            // Perform your background task here
         }
     }
 }

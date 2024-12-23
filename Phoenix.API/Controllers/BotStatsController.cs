@@ -1,5 +1,6 @@
 ﻿using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
+using Phoenix.Shared.Models;
 
 namespace Phoenix.API.Controllers
 {
@@ -33,6 +34,22 @@ namespace Phoenix.API.Controllers
 
 
 
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Post([FromBody] MatchResult matchResult)
+        {
+            try
+            {
+                CollectionReference collection = _dbContext.Collection("MatchResults");
+                DocumentReference document = await collection.AddAsync(matchResult);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
         }
     }
 }
