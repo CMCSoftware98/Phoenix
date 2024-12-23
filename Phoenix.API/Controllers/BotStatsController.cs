@@ -42,6 +42,17 @@ namespace Phoenix.API.Controllers
             try
             {
                 CollectionReference collection = _dbContext.Collection("MatchResults");
+
+
+                Query query = collection.WhereEqualTo("Url", matchResult.Url);
+
+                QuerySnapshot querySnapshot = await query.GetSnapshotAsync();
+
+                if(querySnapshot.Documents.Any())
+                {
+                    return BadRequest("Document already exists");
+                }
+
                 DocumentReference document = await collection.AddAsync(matchResult);
 
                 return Ok();
