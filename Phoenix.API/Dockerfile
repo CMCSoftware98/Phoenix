@@ -14,7 +14,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Phoenix.API.csproj", "Phoenix.API/"]
 RUN echo $(ls -1 /src)
-RUN dotnet restore "./Phoenix.API.csproj"
+RUN dotnet restore "./Phoenix.API/Phoenix.API.csproj"
 COPY . .
 WORKDIR "/src/Phoenix.API"
 RUN dotnet build "./Phoenix.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
