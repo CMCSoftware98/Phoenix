@@ -14,8 +14,8 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Phoenix.API/Phoenix.API.csproj", "Phoenix.API/"]
 RUN dotnet restore "./Phoenix.API/Phoenix.API.csproj"
-COPY . .
 WORKDIR "/src/Phoenix.API"
+COPY . .
 RUN dotnet build "./Phoenix.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
