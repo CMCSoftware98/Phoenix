@@ -15,8 +15,8 @@ WORKDIR /src
 COPY ["Phoenix.API.csproj", "Phoenix.API/"]
 RUN echo $(ls -1 /src)
 RUN dotnet restore "./Phoenix.API/Phoenix.API.csproj"
-COPY . .
 WORKDIR "/src/Phoenix.API"
+COPY . .
 RUN dotnet build "./Phoenix.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
