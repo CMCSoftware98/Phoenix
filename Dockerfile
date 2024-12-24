@@ -12,13 +12,13 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["./Phoenix.API/Phoenix.API.csproj", "Phoenix.API/"]
-COPY ["./Phoenix.Shared/Phoenix.Shared.csproj", "Phoenix.Shared/"]
+COPY ["./Phoenix.API/Phoenix.API.csproj", "Phoenix.API_build/"]
+COPY ["./Phoenix.Shared/Phoenix.Shared.csproj", "Phoenix.Shared_build/"]
 RUN echo $(ls -1 /src)
-RUN dotnet restore "./Phoenix.API/Phoenix.API.csproj"
-WORKDIR "/src/Phoenix.API"
+RUN dotnet restore "./Phoenix.API_build/Phoenix.API.csproj"
+WORKDIR "/src/Phoenix.API_build"
 COPY . .
-RUN dotnet build "./Phoenix.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./Phoenix.API.csproj" -c $BUILD_CONFIGURATION -o /app/builds
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
