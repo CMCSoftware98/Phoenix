@@ -50,7 +50,7 @@ namespace Phoenix.API.Controllers
 
                 if(querySnapshot.Documents.Any())
                 {
-                    return BadRequest("Document already exists");
+                    return Ok("Document already exists");
                 }
 
                 DocumentReference document = await collection.AddAsync(matchResult);
