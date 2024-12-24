@@ -12,8 +12,8 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Phoenix.API.csproj", "Phoenix.API/"]
-COPY ["Phoenix.Shared.csproj", "Phoenix.API/"]
+COPY ["./Phoenix.API/Phoenix.API.csproj", "Phoenix.API/"]
+COPY ["./Phoenix.API/Phoenix.Shared.csproj", "Phoenix.API/"]
 RUN echo $(ls -1 /src)
 RUN dotnet restore "./Phoenix.API/Phoenix.API.csproj"
 WORKDIR "/src/Phoenix.API"

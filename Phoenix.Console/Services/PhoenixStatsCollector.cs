@@ -37,7 +37,7 @@ namespace Phoenix.Console.Services
             
             _webDriver = new ChromeDriver(chromeOptions);
 
-            var options = new RestClientOptions("https://phoenix-229361706325.europe-west4.run.app");
+            var options = new RestClientOptions("https://phoenix-api-229361706325.europe-west4.run.app");
 
             _client = new RestClient(options);
         }
