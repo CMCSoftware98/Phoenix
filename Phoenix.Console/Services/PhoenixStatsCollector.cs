@@ -52,6 +52,8 @@ namespace Phoenix.Console.Services
 
                     await GetOfficialMatchResults();
 
+                    await PostMatchResults();
+
                     await Task.Delay(TimeSpan.FromSeconds(30));
                 }
                 catch (Exception ex) {
@@ -80,6 +82,8 @@ namespace Phoenix.Console.Services
 
             var linksInShadowRoot = shadowRoot.FindElements(By.CssSelector("a"));
 
+            _matchResults.RemoveAll(x => x.CreatedDate.AddHours(1) <= DateTimeOffset.UtcNow);
+
             foreach (var link in linksInShadowRoot)
             {
                 string href = link.GetDomAttribute("href");
@@ -107,11 +111,11 @@ namespace Phoenix.Console.Services
 
         public async Task GetOfficialMatchResults()
         {
-            var firstMatch = _matchResults.FirstOrDefault(x => x.MatchCondition == MatchCondition.Queued);
+            var firstMatch = _matchResults.FirstOrDefault(x => !_foundMatchResults.Where(y => y.Url == x.Url).Any());
 
             if(firstMatch != null)
             {
-                await _webDriver.Navigate().GoToUrlAsync($"https://csgoempire.com/match-betting?bt-path=/cs2-ai/counter-strike-2/de-dust2--bo15--knife/sas-elite-crew-2483113974321786914");
+                await _webDriver.Navigate().GoToUrlAsync($"https://csgoempire.com/match-betting?bt-path={firstMatch.Url}");
 
                 await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -127,11 +131,13 @@ namespace Phoenix.Console.Services
 
                     if (resultText.Text.Contains("Ended"))
                     {
-                        firstMatch.CTSideScore = int.Parse(scores.First().Text);
-                        firstMatch.TSideScore = int.Parse(scores.Last().Text);
-                        firstMatch.MatchCondition = MatchCondition.Finished;
-
-                        _foundMatchResults.Add(firstMatch);
+                        _foundMatchResults.Add(new MatchResult
+                        {
+                            Url = firstMatch.Url,
+                            CTSideScore = int.Parse(scores.First().Text),
+                            TSideScore = int.Parse(scores.Last().Text),
+                            MatchCondition = MatchCondition.Finished
+                        });
                     }
                 }
             }
@@ -145,7 +151,7 @@ namespace Phoenix.Console.Services
 
                 if (result == System.Net.HttpStatusCode.OK)
                 {
-                    _foundMatchResults.Remove(item);
+                    _logger.LogInformation($"Posting Match Result: {item.Url}");   
                 }
             }
         }
