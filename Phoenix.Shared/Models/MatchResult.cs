@@ -25,5 +25,8 @@ namespace Phoenix.Shared.Models
 
         [FirestoreProperty]
         public int TSideScore { get; set; }
+
+        [FirestoreProperty]
+        public List<RoundWinner> RoundWinners { get; set; } = new List<RoundWinner>();
     }
 }

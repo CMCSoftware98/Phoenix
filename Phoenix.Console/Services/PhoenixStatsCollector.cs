@@ -33,8 +33,8 @@ namespace Phoenix.Console.Services
         {
             _logger = logger;
             ChromeOptions chromeOptions = new ChromeOptions();
-            chromeOptions.AddArguments("headless");
-            chromeOptions.AddArgument("no-sandbox");
+            //chromeOptions.AddArguments("headless");
+            //chromeOptions.AddArgument("no-sandbox");
 
             _webDriver = new ChromeDriver(ChromeDriverService.CreateDefaultService(), chromeOptions, TimeSpan.FromMinutes(3));
 
@@ -119,7 +119,7 @@ namespace Phoenix.Console.Services
 
             if(firstMatch != null)
             {
-                await _webDriver.Navigate().GoToUrlAsync($"https://csgoempire.com/match-betting?bt-path={firstMatch.Url}");
+                await _webDriver.Navigate().GoToUrlAsync($"https://csgoempire.com/match-betting?bt-path=/eshooter/counter-strike-2/de-dust2--bo15/sas-elite-crew-2483170378441170953");
 
                 await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -135,11 +135,33 @@ namespace Phoenix.Console.Services
 
                     if (resultText.Text.Contains("Ended"))
                     {
+                        var CTSideScore = int.Parse(scores.First().Text);
+                        var TSideScore = int.Parse(scores.Last().Text);
+
+
+                        List<RoundWinner> roundWinners = new List<RoundWinner>();
+
+                        var skulls = shadowRoot.FindElements(By.CssSelector("[data-cy='skull']"));
+
+                        foreach (var skull in skulls)
+                        {
+                            if (skull.GetDomAttribute("style").Contains("rgb(33, 168, 247)"))
+                            {
+                                roundWinners.Add(RoundWinner.CT);
+                            }
+                            else
+                            {
+                                roundWinners.Add(RoundWinner.T);
+                            }
+                        }
+
+
                         _foundMatchResults.Add(new MatchResult
                         {
                             Url = firstMatch.Url,
-                            CTSideScore = int.Parse(scores.First().Text),
-                            TSideScore = int.Parse(scores.Last().Text),
+                            CTSideScore = CTSideScore,
+                            TSideScore = TSideScore,
+                            RoundWinners = roundWinners,
                             MatchCondition = MatchCondition.Finished
                         });
                     }
