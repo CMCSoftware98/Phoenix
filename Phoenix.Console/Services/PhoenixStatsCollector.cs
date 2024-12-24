@@ -33,8 +33,8 @@ namespace Phoenix.Console.Services
         {
             _logger = logger;
             ChromeOptions chromeOptions = new ChromeOptions();
-            //chromeOptions.AddArguments("headless");
-            //chromeOptions.AddArgument("no-sandbox");
+            chromeOptions.AddArguments("headless");
+            chromeOptions.AddArgument("no-sandbox");
 
             _webDriver = new ChromeDriver(ChromeDriverService.CreateDefaultService(), chromeOptions, TimeSpan.FromMinutes(3));
 
