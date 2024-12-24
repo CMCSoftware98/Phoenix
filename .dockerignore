@@ -1,4 +1,4 @@
-ClimbHub.Console/
+Phoenix.Console/
 **/.classpath
 **/.dockerignore
 **/.env
@@ -7,7 +7,7 @@ ClimbHub.Console/
 **/.project
 **/.settings
 **/.toolstarget
-**/.vs
+**/.vss
 **/.vscode
 **/*.*proj.user
 **/*.dbmdl
