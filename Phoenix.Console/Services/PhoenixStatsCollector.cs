@@ -119,7 +119,7 @@ namespace Phoenix.Console.Services
 
             if(firstMatch != null)
             {
-                await _webDriver.Navigate().GoToUrlAsync($"https://csgoempire.com/match-betting?bt-path=/eshooter/counter-strike-2/de-dust2--bo15/sas-elite-crew-2483170378441170953");
+                await _webDriver.Navigate().GoToUrlAsync($"https://csgoempire.com/match-betting?bt-path={firstMatch.Url}");
 
                 await Task.Delay(TimeSpan.FromSeconds(10));
 
