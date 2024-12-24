@@ -33,7 +33,7 @@ namespace Phoenix.Console.Services
         {
             _logger = logger;
             ChromeOptions chromeOptions = new ChromeOptions();
-            //chromeOptions.AddArguments("headless");
+            chromeOptions.AddArguments("headless");
             
             _webDriver = new ChromeDriver(chromeOptions);
 
