@@ -34,8 +34,12 @@ namespace Phoenix.Console.Services
             _logger = logger;
             ChromeOptions chromeOptions = new ChromeOptions();
             chromeOptions.AddArguments("headless");
-            
-            _webDriver = new ChromeDriver(chromeOptions);
+            chromeOptions.AddArgument("no-sandbox");
+
+            _webDriver = new ChromeDriver(ChromeDriverService.CreateDefaultService(), chromeOptions, TimeSpan.FromMinutes(3));
+
+            _webDriver.Manage().Timeouts().PageLoad.Add(System.TimeSpan.FromSeconds(30));
+
 
             var options = new RestClientOptions("https://phoenix-api-229361706325.europe-west4.run.app");
 
