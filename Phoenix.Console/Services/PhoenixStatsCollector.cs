@@ -149,7 +149,7 @@ namespace Phoenix.Console.Services
 
         public async Task PostMatchResults()
         {
-            foreach (var item in _foundMatchResults)
+            foreach (var item in _foundMatchResults.Where(x => x.CreatedDate.AddMinutes(30) >= DateTimeOffset.UtcNow).ToList())
             {
                 var result = await _client.PostJsonAsync<MatchResult>("botstats", item);
 
