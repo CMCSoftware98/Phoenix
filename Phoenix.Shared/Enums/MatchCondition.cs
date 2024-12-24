@@ -9,6 +9,7 @@ namespace Phoenix.Shared.Enums
     public enum MatchCondition : int
     {
         Queued = 0,
-        Finished = 1
+        Finished = 1,
+        Sent = 2
     }
 }

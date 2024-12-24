@@ -149,13 +149,18 @@ namespace Phoenix.Console.Services
 
         public async Task PostMatchResults()
         {
-            foreach (var item in _foundMatchResults.Where(x => x.CreatedDate.AddMinutes(30) >= DateTimeOffset.UtcNow).ToList())
+            foreach (var item in _foundMatchResults)
             {
-                var result = await _client.PostJsonAsync<MatchResult>("botstats", item);
-
-                if (result == System.Net.HttpStatusCode.OK)
+                if(item.MatchCondition != MatchCondition.Sent)
                 {
-                    _logger.LogInformation($"Posting Match Result: {item.Url}");   
+
+                    var result = await _client.PostJsonAsync<MatchResult>("botstats", item);
+
+                    if (result == System.Net.HttpStatusCode.OK)
+                    {
+                        _logger.LogInformation($"Posting Match Result: {item.Url}");
+                        item.MatchCondition = MatchCondition.Sent;
+                    }
                 }
             }
         }
